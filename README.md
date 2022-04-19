@@ -1,5 +1,5 @@
 # Portfolio_NormalsRaymarching
 
 ## Under Construction
-Currently, working through issues with how I am calculating normals. Below is a visual of that issue
+No idea how lighting even works in this thing, completely unintuitive. Still more cleaning to do
 ![](./Output.png)

@@ -8,8 +8,10 @@
 
 //Horrible constructor, will need to be refactored to add inputs, and with an adjustable FOV
 Camera::Camera() {
-    position = Vector3(0,0,0);
-    imgPlane = Vector3(0,0,-1);
+    position = Vector3(0,0,-5);
+    rotation = Vector3(50,50,0);
+    imgPlane = Vector3(0,0,5);
+    lightPosition = Vector3(2,-5,3);
     width = 1920;
     height = 1080;
     aspectRatio = width/(float)height;
@@ -45,12 +47,15 @@ cv::Mat Camera::CaptureImage(Sphere _sphere) {
                 if (rayDist<epsilon){
                     rayPoint = (dir*rayDist)+rayPoint;
                     keepLoop = false;
+
                     float c = CalculateNormal(rayPoint,_sphere);
-                    std::cout << c << std::endl;
-//                    if(c>1){
-//                        c=1;
-//                    }
-                    color[0] = c*255;
+                    color[2] = c*255;
+
+//                    Vector3 c = CalculateNormals(rayPoint,_sphere);
+//                    color[2] = c.x*255;
+//                    color[1] = c.y*255;
+//                    color[0] = c.z*255;
+
                     img2.at<cv::Vec3b>(cv::Point(w,h)) = color;
                 }
 
@@ -68,9 +73,15 @@ cv::Mat Camera::CaptureImage(Sphere _sphere) {
 
 //Direction of the ray traveling through the center of a pixel of the image plane
 Vector3 Camera::GetDirection(int px, int py) {
-    float Px = (2*((px+0.5)/width)-1)* tanf(FOV/2*M_PI/180)*aspectRatio;
-    float Py = (1-2*((py+0.5)/height))*tanf(FOV/2*M_PI/180);
-    return (Vector3(Px,Py,-1)-position).Normalize();
+
+
+    float rotX = tanf((FOV/2)*((float)M_PI/180));
+    float rotY = tanf((FOV/2)*((float)M_PI/180));
+
+    float Px = (2*((px+0.5)/width)-1)*rotX*aspectRatio;
+    float Py = (1-2*((py+0.5)/height))*rotY;
+
+    return (Vector3(Px,Py,position.z+1)-position).Normalize();
 }
 
 // Bug somewhere in my current calculation
@@ -80,11 +91,32 @@ float Camera::CalculateNormal(Vector3 pos, Sphere _sphere) {
     Vector3 yxy = Vector3(0,epsilon,0);
     Vector3 yyx = Vector3(0,0,epsilon);
 
-    Vector3 value = Vector3(_sphere.SignedDistFunc(pos+xyy)-_sphere.SignedDistFunc(pos-xyy),
+    Vector3 normal = Vector3(_sphere.SignedDistFunc(pos+xyy)-_sphere.SignedDistFunc(pos-xyy),
                             _sphere.SignedDistFunc(pos+yxy)-_sphere.SignedDistFunc(pos-yxy),
-                            _sphere.SignedDistFunc(pos+yyx)-_sphere.SignedDistFunc(pos-yyx));
+                            _sphere.SignedDistFunc(pos+yyx)-_sphere.SignedDistFunc(pos-yyx)).Normalize();
 
-    Vector3 ret = value.Normalize();
+    Vector3 direction_to_light  = pos-lightPosition;
+    Vector3 normLight = direction_to_light.Normalize();
+    float diffuseInt = normal.Dot(normLight);
 
-    return (1.0f+ret.Dot(Vector3(0,-1,-1)))/2.0f;
+    if (diffuseInt<0){
+        diffuseInt = 0;
+    }
+
+    return diffuseInt;
+}
+
+Vector3 Camera::CalculateNormals(Vector3 pos, Sphere _sphere) {
+
+    Vector3 xyy = Vector3(epsilon,0,0);
+    Vector3 yxy = Vector3(0,epsilon,0);
+    Vector3 yyx = Vector3(0,0,epsilon);
+
+    Vector3 normal = Vector3(_sphere.SignedDistFunc(pos+xyy)-_sphere.SignedDistFunc(pos-xyy),
+                             _sphere.SignedDistFunc(pos+yxy)-_sphere.SignedDistFunc(pos-yxy),
+                             _sphere.SignedDistFunc(pos+yyx)-_sphere.SignedDistFunc(pos-yyx)).Normalize();
+
+    float half = 0.5;
+
+    return normal*half+half;
 }

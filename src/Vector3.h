@@ -20,7 +20,7 @@ public:
     Vector3 Normalize();
     Vector3 operator-(Vector3 &other){return Vector3(x-other.x,y-other.y,z-other.z);}
     Vector3 operator+(Vector3 &other){return Vector3(x+other.x,y+other.y,z+other.z);}
-    Vector3 operator+(float &other){return Vector3(x+other,y+other,z+other);}
+    Vector3 operator+(float other){return Vector3(x+other,y+other,z+other);}
     Vector3 operator*(float &other){return Vector3(x*other,y*other,z*other);}
     Vector3 operator/(float &other){return Vector3(x/other,y/other,z/other);}
 

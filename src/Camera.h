@@ -12,6 +12,8 @@ class Camera {
 public:
     Vector3 position;
     Vector3 imgPlane;
+    Vector3 rotation;
+    Vector3 lightPosition;
     int width;
     int height;
     float epsilon;
@@ -20,6 +22,7 @@ public:
     cv::Mat CaptureImage(Sphere inp);
     Vector3 GetDirection(int px,int py);
     float CalculateNormal(Vector3 p, Sphere _sphere);
+    Vector3 CalculateNormals(Vector3 p, Sphere _sphere);
 
 
 private:
